@@ -1,6 +1,7 @@
 import argparse
 
 import cv2
+import os.path
 import pygame as pg
 from screeninfo import get_monitors
 
@@ -55,6 +56,14 @@ def argparse_init(ap):
     )
 
 
+def save_image(image, path):
+    try:
+        cv2.imwrite(path, image)
+    except:
+        print(f"Не удалось сохранить файл по пути {path}")
+        exit()
+
+
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     argparse_init(ap)
@@ -65,12 +74,16 @@ if __name__ == '__main__':
     elif args.reset:
         ConverterSettings().reset_settings()
     else:
+        if not os.path.exists(args.image):
+            print(f'Файл {args.image} не существует')
+            exit()
         image = cv2.imread(args.image)
         settings = ConverterSettings().settings
         font = pg.font.SysFont(settings['font'], settings['font size'], bold=True)
         size = settings['picture size']
         image_res = convert_to_asciiart(image, settings['ascii table'], settings['color level'], font,
                                         int(settings['font size'] * 0.6), tuple(settings['picture size']))
+        save_image(image_res, args.path)
         cv2.imshow('after', transform_picture_to_show(image))
         cv2.imshow('before', transform_picture_to_show(image_res))
         cv2.waitKey(0)
