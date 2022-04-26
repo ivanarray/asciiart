@@ -3,6 +3,7 @@ import argparse
 import cv2
 import os.path
 import pygame as pg
+import os
 from screeninfo import get_monitors
 
 from converter_settings import ConverterSettings
@@ -25,8 +26,23 @@ def transform_picture_to_show(image_res):
     return cv2.resize(image_res, screen_size, interpolation=cv2.INTER_CUBIC)
 
 
+def open_ansi(path: str):
+    if os.name == 'nt':
+        from ctypes import windll
+        k = windll.kernel32
+        k.SetConsoleMode(k.GetStdHandle(-11), 7)
+    with open(path, 'r', encoding='utf8') as image:
+        im = image.readlines()
+        for i in im:
+            print(i)
+
+
 def argparse_init(ap):
     group = ap.add_mutually_exclusive_group()
+    ap.add_argument('-o',
+                    '--open',
+                    required=False,
+                    help='Открыть ansi art')
     ap.add_argument(
         '-i',
         '--image',
@@ -73,6 +89,8 @@ if __name__ == '__main__':
         ConverterSettings().set_size(args.size)
     elif args.reset:
         ConverterSettings().reset_settings()
+    elif args.open:
+        open_ansi(args.open)
     else:
         if not os.path.exists(args.image):
             print(f'Файл {args.image} не существует')
@@ -82,8 +100,11 @@ if __name__ == '__main__':
         font = pg.font.SysFont(settings['font'], settings['font size'], bold=True)
         size = settings['picture size']
         image_res = convert_to_asciiart(image, settings['ascii table'], settings['color level'], font,
-                                        int(settings['font size'] * 0.6), tuple(settings['picture size']))
+                                        int(settings['font size']), tuple(settings['picture size']))
         save_image(image_res, args.path)
         cv2.imshow('after', transform_picture_to_show(image))
         cv2.imshow('before', transform_picture_to_show(image_res))
         cv2.waitKey(0)
+
+# чб картинка
+# .ansi возможность просматривать
